@@ -1,0 +1,16 @@
+
+---
+
+### `requirements.txt`
+```txt
+pandas
+openpyxl
+pillow
+pytesseract
+opencv-python-headless
+pdfplumber
+jsonschema
+streamlit
+fastapi
+uvicorn[standard]
+rapidfuzz
