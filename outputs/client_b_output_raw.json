@@ -1,0 +1,26 @@
+{
+  "order_id": "GM-2024-2041",
+  "client_name": "Global Manufacturing Inc",
+  "order_date": "2024-07-18",
+  "delivery_date": "2024-07-25",
+  "items": [
+    {
+      "product_code": "SKU-1234",
+      "description": "Widget A",
+      "quantity": 10,
+      "unit_price": 12.5,
+      "total_price": 125
+    },
+    {
+      "product_code": "SKU-5678",
+      "description": "Widget B",
+      "quantity": 5,
+      "unit_price": 25.0,
+      "total_price": 125
+    }
+  ],
+  "order_total": 250.0,
+  "currency": "USD",
+  "special_instructions": "Deliver to Plant B; see Notes tab",
+  "confidence_score": 0.92
+}

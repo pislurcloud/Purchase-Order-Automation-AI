@@ -1,8 +1,4 @@
 
----
-
-### `requirements.txt`
-```txt
 pandas
 openpyxl
 pillow
