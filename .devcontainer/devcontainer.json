@@ -1,0 +1,10 @@
+{
+  "name": "PO Extraction PoC",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "forwardPorts": [8501],
+  "postCreateCommand": "pip install -r requirements.txt",
+  "settings": {},
+  "extensions": ["ms-python.python"]
+}
