@@ -1,0 +1,55 @@
+{
+  "order_id": "B-2041",
+  "client_name": "B",
+  "order_date": "2025-07-29",
+  "delivery_date": null,
+  "items": [
+    {
+      "product_code": "PR-010",
+      "description": "Alpha Widget",
+      "quantity": 19,
+      "unit_price": 50.57,
+      "total_price": 960.83
+    },
+    {
+      "product_code": "X100",
+      "description": "X100 Device",
+      "quantity": 8,
+      "unit_price": 29.57,
+      "total_price": 236.56
+    },
+    {
+      "product_code": "IT-001",
+      "description": "Alpha Widget",
+      "quantity": 26,
+      "unit_price": 136.73,
+      "total_price": 3554.98
+    },
+    {
+      "product_code": "PR-010",
+      "description": "Alpha Widget",
+      "quantity": 29,
+      "unit_price": 256.94,
+      "total_price": 7451.26
+    },
+    {
+      "product_code": "IT-001",
+      "description": "Alpha Widget",
+      "quantity": 8,
+      "unit_price": 113.51,
+      "total_price": 908.08
+    },
+    {
+      "product_code": "IT-001",
+      "description": "Alpha Widget",
+      "quantity": 5,
+      "unit_price": 41.89,
+      "total_price": 209.45
+    }
+  ],
+  "order_total": 13321.16,
+  "currency": null,
+  "special_instructions": null,
+  "confidence_score": 0.88,
+  "mode": "enhanced-excel"
+}

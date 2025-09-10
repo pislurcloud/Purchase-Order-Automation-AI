@@ -1,0 +1,19 @@
+{
+  "order_id": "PO-2026-7864",
+  "client_name": "Order ID: PO-2026-7864",
+  "order_date": "2025-09-29",
+  "delivery_date": "2025-10-16",
+  "items": [
+    {
+      "product_code": "PR-002",
+      "description": "Gadget Max",
+      "quantity": 31,
+      "unit_price": 46.34,
+      "total_price": 1436.54
+    }
+  ],
+  "order_total": 1436.54,
+  "currency": "USD",
+  "special_instructions": null,
+  "confidence_score": 0.9
+}

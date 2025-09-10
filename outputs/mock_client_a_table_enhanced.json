@@ -1,0 +1,13 @@
+{
+  "order_id": null,
+  "client_name": null,
+  "order_date": "2024-03-22",
+  "delivery_date": null,
+  "currency": null,
+  "order_total": 22.0,
+  "item_count": 0,
+  "items": [],
+  "special_instructions": null,
+  "confidence_score": 0.2,
+  "mode": "enhanced-pdf"
+}

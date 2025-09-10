@@ -1,0 +1,17 @@
+
+Beta Ltd - Purchase Order
+Order ID: PO-2027-7296
+Order Date: 2025-09-01 Delivery Date: 2025-09-06
+Currency: GBP
+Product Code Description Quantity Unit Price Total Price
+PR-010 Alpha Widget 30 111.86 3355.80
+IT-001 Alpha Widget 4 90.37 361.48
+Order Total: 3717.28
+Order Date: 2025-09-01 Delivery Date: 2025-09-06
+Currency: GBP
+
+Product Code Description Quantity UnitPrice Total Price
+
+IT-001 Alpha Widget 4 90.37 361.48
+
+Order Total: 3717.28

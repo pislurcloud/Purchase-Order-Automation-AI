@@ -1,0 +1,60 @@
+{
+  "order_id": null,
+  "client_name": null,
+  "order_date": null,
+  "delivery_date": null,
+  "items": [
+    {
+      "OrderID": "B-2041",
+      "Product": "PR-010",
+      "Description": "Alpha Widget",
+      "Qty": 19,
+      "UnitPrice": 50.57,
+      "Total": 960.83
+    },
+    {
+      "OrderID": "B-2041",
+      "Product": "X100",
+      "Description": "X100 Device",
+      "Qty": 8,
+      "UnitPrice": 29.57,
+      "Total": 236.56
+    },
+    {
+      "OrderID": "B-2041",
+      "Product": "IT-001",
+      "Description": "Alpha Widget",
+      "Qty": 26,
+      "UnitPrice": 136.73,
+      "Total": 3554.98
+    },
+    {
+      "OrderID": "B-5054",
+      "Product": "PR-010",
+      "Description": "Alpha Widget",
+      "Qty": 29,
+      "UnitPrice": 256.94,
+      "Total": 7451.26
+    },
+    {
+      "OrderID": "B-5054",
+      "Product": "IT-001",
+      "Description": "Alpha Widget",
+      "Qty": 8,
+      "UnitPrice": 113.51,
+      "Total": 908.08
+    },
+    {
+      "OrderID": "B-5054",
+      "Product": "IT-001",
+      "Description": "Alpha Widget",
+      "Qty": 5,
+      "UnitPrice": 41.89,
+      "Total": 209.45
+    }
+  ],
+  "order_total": 0.0,
+  "currency": null,
+  "special_instructions": null,
+  "confidence_score": 0.92
+}

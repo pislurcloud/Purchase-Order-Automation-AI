@@ -1,0 +1,28 @@
+{
+  "order_id": "C-4374",
+  "client_name": "ary Designs",
+  "order_date": "3125-08-27",
+  "delivery_date": "2027-08-25",
+  "currency": "USD",
+  "order_total": 10043.83,
+  "item_count": 2,
+  "items": [
+    {
+      "product_code": "Gadget",
+      "description": "Max",
+      "quantity": 47,
+      "unit_price": 77.61,
+      "total_price": 3647.67
+    },
+    {
+      "product_code": "x",
+      "description": "100 Device",
+      "quantity": 32,
+      "unit_price": 199.88,
+      "total_price": 6396.16
+    }
+  ],
+  "special_instructions": null,
+  "confidence_score": 1.0,
+  "mode": "enhanced-ocr"
+}

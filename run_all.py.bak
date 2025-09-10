@@ -84,6 +84,8 @@ handlers = {
 if __name__ == '__main__':
     processed = []
     for f in sorted(mock_dir.iterdir()):
+        # ignore hidden files and common placeholders like .gitkeep\n        
+        if f.name.startswith('.') or f.name.lower() == '.gitkeep':continue
         if not f.is_file(): continue
         ext = f.suffix.lower()
         out_name = f.stem + '_output.json'

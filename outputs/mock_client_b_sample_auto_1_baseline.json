@@ -1,0 +1,28 @@
+{
+  "order_id": null,
+  "client_name": null,
+  "order_date": null,
+  "delivery_date": null,
+  "items": [
+    {
+      "OrderID": "B-4295",
+      "Product": "Y500",
+      "Description": "Y500 Module",
+      "Qty": 29,
+      "UnitPrice": 8.29,
+      "Total": 240.41
+    },
+    {
+      "OrderID": "B-4295",
+      "Product": "Y500",
+      "Description": "Y500 Module",
+      "Qty": 15,
+      "UnitPrice": 6.31,
+      "Total": 94.65
+    }
+  ],
+  "order_total": 0.0,
+  "currency": null,
+  "special_instructions": null,
+  "confidence_score": 0.92
+}

@@ -1,0 +1,27 @@
+{
+  "order_id": "B-4295",
+  "client_name": "V",
+  "order_date": "2025-08-11",
+  "delivery_date": null,
+  "items": [
+    {
+      "product_code": "Y500",
+      "description": "Y500 Module",
+      "quantity": 29,
+      "unit_price": 8.29,
+      "total_price": 240.41
+    },
+    {
+      "product_code": "Y500",
+      "description": "Y500 Module",
+      "quantity": 15,
+      "unit_price": 6.31,
+      "total_price": 94.65
+    }
+  ],
+  "order_total": 335.06,
+  "currency": null,
+  "special_instructions": null,
+  "confidence_score": 0.88,
+  "mode": "enhanced-excel"
+}

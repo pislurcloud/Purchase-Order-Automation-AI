@@ -1,0 +1,28 @@
+{
+  "order_id": "C-7214",
+  "client_name": "Corp",
+  "order_date": "3125-09-10",
+  "delivery_date": "2010-09-25",
+  "currency": "USD",
+  "order_total": 1996.19,
+  "item_count": 2,
+  "items": [
+    {
+      "product_code": "Optic",
+      "description": "Lens",
+      "quantity": 4,
+      "unit_price": 167.81,
+      "total_price": 671.24
+    },
+    {
+      "product_code": "Alpha",
+      "description": "Widget",
+      "quantity": 15,
+      "unit_price": 88.33,
+      "total_price": 1324.95
+    }
+  ],
+  "special_instructions": null,
+  "confidence_score": 1.0,
+  "mode": "enhanced-ocr"
+}

@@ -1,0 +1,28 @@
+{
+  "order_id": "PO-2029-3227",
+  "client_name": "InnovaTech Systems",
+  "order_date": "2025-09-30",
+  "delivery_date": "2025-10-21",
+  "currency": "USD",
+  "order_total": 7215.45,
+  "item_count": 2,
+  "items": [
+    {
+      "product_code": "PR-001",
+      "description": "Widget Pro",
+      "quantity": 24,
+      "unit_price": 158.61,
+      "total_price": 3806.64
+    },
+    {
+      "product_code": "PR-010",
+      "description": "Alpha Widget",
+      "quantity": 37,
+      "unit_price": 92.13,
+      "total_price": 3408.81
+    }
+  ],
+  "special_instructions": null,
+  "confidence_score": 1.0,
+  "mode": "enhanced-pdf"
+}

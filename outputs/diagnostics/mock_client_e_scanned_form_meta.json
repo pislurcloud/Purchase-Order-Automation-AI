@@ -1,0 +1,9 @@
+{
+  "order_id": "PO-2025",
+  "client_name": "Acme Supplies Pvt Ltd",
+  "order_date": "2025-02-14",
+  "delivery_date": "2025-02-21",
+  "currency": "INR",
+  "order_total": 120.0,
+  "item_count": 0
+}

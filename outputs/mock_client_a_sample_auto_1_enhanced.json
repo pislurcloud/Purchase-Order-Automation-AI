@@ -1,0 +1,21 @@
+{
+  "order_id": "PO-2026-7864",
+  "client_name": "Acme Corp",
+  "order_date": "2025-09-29",
+  "delivery_date": "2025-10-16",
+  "currency": "USD",
+  "order_total": 1436.54,
+  "item_count": 1,
+  "items": [
+    {
+      "product_code": "PR-002",
+      "description": "Gadget Max",
+      "quantity": 31,
+      "unit_price": 46.34,
+      "total_price": 1436.54
+    }
+  ],
+  "special_instructions": null,
+  "confidence_score": 1.0,
+  "mode": "enhanced-pdf"
+}

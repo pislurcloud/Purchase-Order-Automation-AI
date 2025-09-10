@@ -1,0 +1,28 @@
+{
+  "order_id": "C-7597",
+  "client_name": "Corp",
+  "order_date": "3125-09-17",
+  "delivery_date": "2017-09-25",
+  "currency": "USD",
+  "order_total": 7287.84,
+  "item_count": 2,
+  "items": [
+    {
+      "product_code": "Turbo",
+      "description": "Gear",
+      "quantity": 46,
+      "unit_price": 113.34,
+      "total_price": 5213.64
+    },
+    {
+      "product_code": "Widget",
+      "description": "Pro",
+      "quantity": 12,
+      "unit_price": 172.85,
+      "total_price": 2074.2
+    }
+  ],
+  "special_instructions": null,
+  "confidence_score": 1.0,
+  "mode": "enhanced-ocr"
+}

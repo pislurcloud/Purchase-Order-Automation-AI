@@ -1,0 +1,17 @@
+
+InnovaTech Systems - Purchase Order
+Order ID: PO-2029-3227
+Order Date: 2025-09-30 Delivery Date: 2025-10-21
+Currency: USD
+Product Code Description Quantity Unit Price Total Price
+PR-001 Widget Pro 24 158.61 3806.64
+PR-010 Alpha Widget 37 92.13 3408.81
+Order Total: 7215.45
+Order Date: 2025-09-30 Delivery Date: 2025-10-21
+Currency: USD
+
+Product Code Description Quantity UnitPrice Total Price
+
+PR-010 Alpha Widget 37 92.13 3408.81
+
+Order Total: 7215.45
