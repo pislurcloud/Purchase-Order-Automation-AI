@@ -1,0 +1,26 @@
+{
+  "order_id": "PO-2025-3301",
+  "client_name": "Acme Supplies Pvt Ltd",
+  "order_date": "2025-02-14",
+  "delivery_date": "2025-02-21",
+  "items": [
+    {
+      "product_code": "AC-1001",
+      "description": "Bolt (Box)",
+      "quantity": 20,
+      "unit_price": 15.0,
+      "total_price": 300.0
+    },
+    {
+      "product_code": "AC-1002",
+      "description": "Nut (Box)",
+      "quantity": 10,
+      "unit_price": 12.0,
+      "total_price": 120.0
+    }
+  ],
+  "order_total": 420.0,
+  "currency": "INR",
+  "special_instructions": null,
+  "confidence_score": 0.75
+}

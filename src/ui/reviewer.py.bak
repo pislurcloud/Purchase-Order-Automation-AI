@@ -1,6 +1,6 @@
 # src/ui/reviewer.py
 # Reviewer UI with document preview, editable fields, editable items table, flagging and audit metadata.
-# Fully replaced to include robust guess_source_file (strips _output suffixes, ignores .gitkeep, supports Excel preview).
+# Patched: improved source matching and Excel/CSV preview support.
 
 import streamlit as st
 import json, io, os, base64, time
@@ -65,78 +65,57 @@ except Exception as e:
     st.error(f"Failed to read JSON: {e}")
     st.stop()
 
-# Robust guess_source_file (full replacement)
+# Improved guess_source_file
 def guess_source_file(json_path):
     """
-    Robust source matcher:
-      - strips common extractor suffixes from the JSON stem (e.g. _output, _output_raw, _raw, _parsed)
-      - tries exact stem equality, containment, token matching, then fallback
-      - ignores hidden files and .gitkeep
+    Heuristics to locate the original source file for a given parsed JSON.
+    Strategies (in order):
+      1) direct stem containment: if mock file stem contains the json stem -> match
+      2) token match: split json stem into tokens (client, a, output) and match meaningful tokens (e.g. 'client_a' or 'a')
+      3) prefix match: match client identifier like 'client_a' in file name
+      4) fallback: return first PDF/image/Excel in mock folder if nothing else
     """
-    name = json_path.stem
-    # remove common suffixes added by extractor
-    for suff in ('_output_raw', '_output', '_raw', '_parsed', '_extracted'):
-        if name.lower().endswith(suff):
-            name = name[:-len(suff)]
-            break
-    name = name.strip('_').lower()
-
-    tokens = [t for t in name.split('_') if t]
+    name = json_path.stem  # e.g., client_a_output
+    tokens = [t for t in name.split('_') if t]  # e.g., ['client','a','output']
     candidate_tokens = []
     if len(tokens) >= 2:
-        candidate_tokens.append(f"{tokens[0]}_{tokens[1]}")
+        candidate_tokens.append(f"{tokens[0]}_{tokens[1]}")  # client_a
     for t in tokens:
-        if t and t.lower() != 'client' and t not in candidate_tokens:
+        if t.lower() != 'client' and t not in candidate_tokens:
             candidate_tokens.append(t)
     candidate_tokens.append(name)
 
-    # scanning logic: exact -> containment -> token -> fallback
     for d in CANDIDATE_MOCKS:
         if not d.exists():
             continue
-        # exact equality
+        # 1) direct stem containment (preferred)
         for f in d.iterdir():
             if not f.is_file():
                 continue
-            if f.name.startswith('.') or f.name.lower() == '.gitkeep':
-                continue
-            if f.stem.lower() == name:
+            if name.lower() in f.stem.lower():
                 return f
-    # containment (json base in filename or filename in base)
-    for d in CANDIDATE_MOCKS:
-        if not d.exists():
-            continue
-        for f in d.iterdir():
-            if not f.is_file():
-                continue
-            if f.name.startswith('.') or f.name.lower() == '.gitkeep':
-                continue
-            stem = f.stem.lower()
-            if name in stem or stem in name:
-                return f
-    # token matching
-    for d in CANDIDATE_MOCKS:
-        if not d.exists():
-            continue
+        # 2) token matching
         for tok in candidate_tokens:
             for f in d.iterdir():
                 if not f.is_file():
                     continue
-                if f.name.startswith('.') or f.name.lower() == '.gitkeep':
-                    continue
-                if tok and tok.lower() in f.stem.lower():
+                if tok.lower() in f.stem.lower():
                     return f
-    # fallback: first supported type
+        # 3) try prefix match
+        for f in d.iterdir():
+            if not f.is_file():
+                continue
+            if f.stem.lower().startswith(name.lower().split('_')[0]):
+                return f
+
+    # Final fallback: return first pdf/image/excel/csv in the first existing mock dir
     for d in CANDIDATE_MOCKS:
         if not d.exists():
             continue
         for f in d.iterdir():
-            if not f.is_file():
-                continue
-            if f.name.startswith('.') or f.name.lower() == '.gitkeep':
-                continue
             if f.suffix.lower() in ('.pdf', '.png', '.jpg', '.jpeg', '.tiff', '.xlsx', '.xls', '.csv'):
                 return f
+
     return None
 
 source_file = guess_source_file(sel)
@@ -210,20 +189,16 @@ with col1:
 
 with col2:
     st.subheader("Parsed fields (editable)")
-    # Show canonical top-level keys first (order known)
     top_keys = ['order_id', 'client_name', 'order_date', 'delivery_date', 'order_total', 'currency', 'special_instructions', 'confidence_score', 'validation_ok', 'validation_errors']
     edited = {}
-    # display keys present in parsed
     for k in top_keys:
         if k in parsed:
             v = parsed.get(k)
-            # for validation lists show as text for now
             if isinstance(v, list):
                 edited[k] = st.text_area(k, value=json.dumps(v, indent=2), height=80)
             else:
                 edited[k] = st.text_input(k, value="" if v is None else str(v))
 
-    # Any additional keys present but not in top_keys
     others = [k for k in parsed.keys() if k not in top_keys and k != 'items']
     if others:
         st.write("Other extracted fields:")
@@ -234,25 +209,20 @@ with col2:
     st.markdown("---")
     st.subheader("Items (editable)")
     items = parsed.get('items', []) or []
-    # convert items (list of dicts) to a list of rows suitable for data editor
     import pandas as pd
     if isinstance(items, list):
         df_items = pd.DataFrame(items)
     else:
-        df_items = pd.DataFrame(items)  # fallback, may be empty
-    # ensure columns exist
+        df_items = pd.DataFrame(items)
     for col in ['product_code','description','quantity','unit_price','total_price']:
         if col not in df_items.columns:
             df_items[col] = None
-    # show data editor (Streamlit 1.18+ supports st.data_editor, older versions have experimental)
     try:
-        # st.data_editor offers better UX if available
         edited_df = st.data_editor(df_items, num_rows="dynamic")
     except Exception:
         try:
             edited_df = st.experimental_data_editor(df_items)
         except Exception:
-            # fallback to editing JSON text
             st.write("Your Streamlit version does not support data editor. Items shown as JSON:")
             st.write(items)
             edited_df = df_items
@@ -261,9 +231,7 @@ with col2:
     st.write("When you click Save corrections the edited fields + items + reviewer notes will be persisted to the `labels/` folder along with a small audit record.")
 
     if st.button("Save corrections"):
-        # Build saved object merging edited top-level fields and edited items
         saved = {}
-        # coerce numeric fields back where sensible
         def coerce_val(k, v):
             if k in ('order_total','confidence_score'):
                 try:
@@ -278,7 +246,6 @@ with col2:
             return v
 
         for k, v in edited.items():
-            # if text area contains JSON array (validation errors) try to parse
             if isinstance(v, str) and (v.strip().startswith('[') or v.strip().startswith('{')):
                 try:
                     saved[k] = json.loads(v)
@@ -287,11 +254,9 @@ with col2:
             else:
                 saved[k] = coerce_val(k, v)
 
-        # items: convert edited_df back to list of dicts
         try:
             items_list = edited_df.to_dict(orient='records')
         except Exception:
-            # if edited_df is not a DataFrame (fallback), keep original items
             items_list = items
 
         saved['items'] = items_list
@@ -301,9 +266,7 @@ with col2:
         saved['reviewer_notes'] = reviewer_notes
         saved['review_timestamp'] = datetime.utcnow().isoformat() + "Z"
 
-        # write to labels folder sibling to outputs
         labels_dir = OUT.parent / "labels"
-        # if exists and is file, rename to backup
         if labels_dir.exists() and not labels_dir.is_dir():
             backup = labels_dir.with_suffix(".bak")
             labels_dir.rename(backup)
@@ -311,14 +274,21 @@ with col2:
 
         outp = labels_dir / sel.name
         outp.write_text(json.dumps(saved, indent=2))
+
+        # append audit log (append mode)
+        try:
+            audit_f = labels_dir / "audit.log"
+            audit_entry = {
+                'json': str(sel.name),
+                'saved_to': str(outp),
+                'timestamp': saved['review_timestamp'],
+                'reviewer': saved['reviewer'],
+                'flagged': saved['flagged']
+            }
+            with open(audit_f, "a", encoding="utf-8") as af:
+                af.write(json.dumps(audit_entry) + "\n")
+        except Exception as e:
+            st.warning(f"Failed to write audit log: {e}")
+
         st.success(f"Saved corrected file to {outp}")
-        # append audit log entry
-        audit = {
-            'json': str(sel.name),
-            'saved_to': str(outp),
-            'timestamp': saved['review_timestamp'],
-            'reviewer': saved['reviewer'],
-            'flagged': saved['flagged']
-        }
-        (labels_dir / "audit.log").write_text(json.dumps(audit) + "\n", append=False)  # overwrite: single-entry log
         st.experimental_rerun()

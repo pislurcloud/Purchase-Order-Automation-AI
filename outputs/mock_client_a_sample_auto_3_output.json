@@ -1,0 +1,26 @@
+{
+  "order_id": "PO-2027-7296",
+  "client_name": "Order ID: PO-2027-7296",
+  "order_date": "2025-09-01",
+  "delivery_date": "2025-09-06",
+  "items": [
+    {
+      "product_code": "PR-010",
+      "description": "Alpha Widget",
+      "quantity": 30,
+      "unit_price": 111.86,
+      "total_price": 3355.8
+    },
+    {
+      "product_code": "IT-001",
+      "description": "Alpha Widget",
+      "quantity": 4,
+      "unit_price": 90.37,
+      "total_price": 361.48
+    }
+  ],
+  "order_total": 3717.28,
+  "currency": "GBP",
+  "special_instructions": null,
+  "confidence_score": 0.9
+}

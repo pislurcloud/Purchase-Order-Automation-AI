@@ -1,0 +1,26 @@
+{
+  "order_id": "C-4374",
+  "client_name": null,
+  "order_date": null,
+  "delivery_date": null,
+  "items": [
+    {
+      "product_code": "PR-OO2",
+      "description": "Gadget",
+      "quantity": "Max",
+      "unit_price": 47.0,
+      "total_price": 77.61
+    },
+    {
+      "product_code": "X100",
+      "description": "X100",
+      "quantity": "Device",
+      "unit_price": 32.0,
+      "total_price": 199.88
+    }
+  ],
+  "order_total": 277.49,
+  "currency": "USD",
+  "special_instructions": null,
+  "confidence_score": 0.75
+}

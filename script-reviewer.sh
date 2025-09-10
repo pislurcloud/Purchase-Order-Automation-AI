@@ -1,3 +1,8 @@
+# backup current reviewer.py
+#cp src/ui/reviewer.py src/ui/reviewer.py.bak
+
+# write patched reviewer.py
+cat > src/ui/reviewer.py <<'PY'
 # src/ui/reviewer.py
 # Reviewer UI with document preview, editable fields, editable items table, flagging and audit metadata.
 # Fully replaced to include robust guess_source_file (strips _output suffixes, ignores .gitkeep, supports Excel preview).
@@ -322,3 +327,4 @@ with col2:
         }
         (labels_dir / "audit.log").write_text(json.dumps(audit) + "\n", append=False)  # overwrite: single-entry log
         st.experimental_rerun()
+PY

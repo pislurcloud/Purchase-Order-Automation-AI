@@ -1,0 +1,19 @@
+{
+  "order_id": "C-7214",
+  "client_name": null,
+  "order_date": null,
+  "delivery_date": null,
+  "items": [
+    {
+      "product_code": "IT-001",
+      "description": "Alpha",
+      "quantity": "Widget",
+      "unit_price": 15.0,
+      "total_price": 88.33
+    }
+  ],
+  "order_total": 88.33,
+  "currency": "USD",
+  "special_instructions": null,
+  "confidence_score": 0.75
+}

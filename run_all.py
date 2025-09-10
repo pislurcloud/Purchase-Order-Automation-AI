@@ -1,3 +1,108 @@
-import runpy, sys
-sys.path.append('src')
-runpy.run_path('src/run_all.py', run_name='__main__')
+# run_all.py - processes all files in data/mock_files/ and writes outputs to outputs/
+import json, traceback
+from pathlib import Path
+repo_root = Path(__file__).resolve().parent
+mock_dir = repo_root / "data" / "mock_files"
+out_dir = repo_root / "outputs"
+out_dir.mkdir(parents=True, exist_ok=True)
+
+# import extractors (use fallbacks if modules not present)
+try:
+    from src.extract_pdf import extract_from_pdf
+except Exception:
+    def extract_from_pdf(path):
+        return {'error': 'extract_from_pdf not available'}
+
+try:
+    from src.extract_ocr import extract_from_image
+except Exception:
+    def extract_from_image(path):
+        return {'error': 'extract_from_image not available'}
+
+# excel extractor: try import, else provide a simple pandas-based extractor
+try:
+    from src.extract_excel import extract_excel as _extract_excel
+    def extract_from_excel(path):
+        return _extract_excel(path)
+except Exception:
+    def extract_from_excel(path):
+        try:
+            import pandas as pd
+            df = pd.read_excel(path, sheet_name=0)
+            # Minimal conversion: return first row as metadata + rows as items
+            items = []
+            try:
+                items_df = pd.read_excel(path, sheet_name='Items')
+                items = items_df.to_dict(orient='records')
+            except Exception:
+                # try infer items from second sheet or from rows
+                pass
+            return {
+                'order_id': None,
+                'client_name': None,
+                'order_date': None,
+                'delivery_date': None,
+                'items': items or df.to_dict(orient='records'),
+                'order_total': None,
+                'currency': None,
+                'special_instructions': None,
+                'confidence_score': 0.7
+            }
+        except Exception as e:
+            return {'error': f'excel extraction failed: {e}'}
+
+def extract_from_csv(path):
+    try:
+        import pandas as pd
+        df = pd.read_csv(path)
+        return {
+            'order_id': None,
+            'client_name': None,
+            'order_date': None,
+            'delivery_date': None,
+            'items': df.to_dict(orient='records'),
+            'order_total': None,
+            'currency': None,
+            'special_instructions': None,
+            'confidence_score': 0.6
+        }
+    except Exception as e:
+        return {'error': str(e)}
+
+handlers = {
+    '.pdf': lambda p: extract_from_pdf(str(p)),
+    '.png': lambda p: extract_from_image(str(p)),
+    '.jpg': lambda p: extract_from_image(str(p)),
+    '.jpeg': lambda p: extract_from_image(str(p)),
+    '.tiff': lambda p: extract_from_image(str(p)),
+    '.bmp': lambda p: extract_from_image(str(p)),
+    '.xlsx': lambda p: extract_from_excel(str(p)),
+    '.xls': lambda p: extract_from_excel(str(p)),
+    '.csv': lambda p: extract_from_csv(str(p)),
+}
+
+if __name__ == '__main__':
+    processed = []
+    for f in sorted(mock_dir.iterdir()):
+        # ignore hidden files and common placeholders like .gitkeep\n        
+        if f.name.startswith('.') or f.name.lower() == '.gitkeep':continue
+        if not f.is_file(): continue
+        ext = f.suffix.lower()
+        out_name = f.stem + '_output.json'
+        out_path = out_dir / out_name
+        try:
+            handler = handlers.get(ext)
+            if handler is None:
+                res = {'error': 'unsupported file type: ' + ext}
+            else:
+                res = handler(f)
+        except Exception as e:
+            res = {'error': str(e), 'traceback': traceback.format_exc()}
+        try:
+            with open(out_path, 'w', encoding='utf-8') as fo:
+                json.dump(res, fo, indent=2, default=str)
+            processed.append(str(out_path))
+            print('Wrote', out_path)
+        except Exception as e:
+            print('Failed writing', out_path, e)
+    print('\\nProcessed files:', processed)
