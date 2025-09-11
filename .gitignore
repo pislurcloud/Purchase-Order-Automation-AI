@@ -1,0 +1,39 @@
+# Development files
+*_fixed.py
+*_debug.py
+debug_*.py
+quick_fix_*.py
+update_*.py
+check_*.py
+*.backup
+*.bak
+
+# Environment and secrets
+.env
+*.log
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.pytest_cache/
+
+# Output directories (development)
+outputs_enhanced_fixed/
+labels_enhanced_fixed/
+outputs_enhanced_test/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
