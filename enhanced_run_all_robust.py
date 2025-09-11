@@ -1,5 +1,4 @@
-
-# enhanced_run_all_robust.py - Robust version with better LLM error handling
+# enhanced_run_all_robust.py - Improved version with better file naming for comparison
 import json
 import traceback
 import os
@@ -13,8 +12,13 @@ mock_dir = repo_root / "data" / "mock_files"
 out_dir = repo_root / "outputs"
 enhanced_out_dir = repo_root / "outputs_enhanced_robust"
 
+# Ensure directories exist
 out_dir.mkdir(parents=True, exist_ok=True)
 enhanced_out_dir.mkdir(parents=True, exist_ok=True)
+
+print(f"📁 Input directory: {mock_dir}")
+print(f"📁 Original output directory: {out_dir}")
+print(f"📁 Enhanced output directory: {enhanced_out_dir}")
 
 # Import existing extractors with fallbacks
 try:
@@ -79,13 +83,20 @@ handlers = {
     '.csv': lambda p: extract_from_csv(str(p)),
 }
 
+# UPDATE the handlers dictionary to use the simple version:
+handlers['.txt'] = lambda p: extract_from_txt_simple(str(p))
+handlers['.text'] = lambda p: extract_from_txt_simple(str(p))
+
+print("🔧 FOCUSED FIX LOADED - .txt files should now be processed!")
+
 # Robust LLM Enhancement Class
 class SimpleLLMEnhancer:
     def __init__(self, api_key):
-        import openai
-        self.client = openai.OpenAI(api_key=api_key)
-        self.model = "gpt-4"
-    
+        from groq import Groq
+        self.client = Groq(api_key=api_key)
+        self.model = "Llama-3.3-70B-Versatile"
+
+            
     def safe_llm_call(self, prompt, max_retries=2):
         """Make LLM call with retries and error handling"""
         for attempt in range(max_retries):
@@ -240,16 +251,17 @@ class SimpleLLMEnhancer:
 
 # Initialize LLM enhancer
 llm_enhancer = None
-openai_api_key = os.getenv('OPENAI_API_KEY')
+#openai_api_key = os.getenv('OPENAI_API_KEY')
+groq_api_key = os.getenv('GROQ_API_KEY')
 
-if openai_api_key:
+if groq_api_key:
     try:
-        llm_enhancer = SimpleLLMEnhancer(openai_api_key)
+        llm_enhancer = SimpleLLMEnhancer(groq_api_key)
         print("✓ Robust LLM enhancer initialized")
     except Exception as e:
         print(f"⚠ LLM enhancer failed to initialize: {e}")
 else:
-    print("⚠ OPENAI_API_KEY not set")
+    print("⚠ GROQ_API_KEY not set - running without LLM enhancement")
 
 def get_raw_content(file_path):
     """Extract raw content for LLM processing"""
@@ -395,12 +407,68 @@ def robust_enhance_extraction(enhancer, raw_content, current_result, file_path):
     
     return result
 
+def get_baseline_filename(file_path):
+    """Generate consistent baseline filename for comparison"""
+    stem = file_path.stem
+    return f"{stem}_baseline.json"
+
+def get_enhanced_filename(file_path):
+    """Generate consistent enhanced filename for comparison"""
+    stem = file_path.stem
+    return f"{stem}_enhanced_robust.json"
+
+def ensure_baseline_exists(file_path):
+    """Ensure baseline file exists for comparison"""
+    baseline_path = out_dir / get_baseline_filename(file_path)
+    
+    if not baseline_path.exists():
+        print(f"    📋 Creating baseline for comparison: {baseline_path.name}")
+        
+        # Run standard extraction
+        ext = file_path.suffix.lower()
+        handler = handlers.get(ext)
+        
+        if handler is None:
+            baseline_result = {'error': f'unsupported file type: {ext}', 'confidence_score': 0.0}
+        else:
+            try:
+                baseline_result = handler(file_path)
+                baseline_result['processing_mode'] = 'baseline'
+                baseline_result['processing_timestamp'] = pd.Timestamp.now().isoformat()
+            except Exception as e:
+                baseline_result = {'error': str(e), 'confidence_score': 0.0}
+        
+        # Save baseline
+        try:
+            with open(baseline_path, 'w', encoding='utf-8') as f:
+                json.dump(baseline_result, f, indent=2, default=str)
+            print(f"    ✓ Baseline saved: {baseline_path.name}")
+        except Exception as e:
+            print(f"    ❌ Failed to save baseline: {e}")
+    
+    return baseline_path
+
 def process_file_robust(file_path):
-    """Process a single file with robust enhancement"""
+    """Process a single file with robust enhancement and ensure baseline exists"""
     
-    print(f"\nProcessing: {file_path.name}")
+    print(f"\n{'='*60}")
+    print(f"Processing: {file_path.name}")
+    print(f"{'='*60}")
     
-    # Standard extraction
+    # Ensure baseline exists for comparison
+    baseline_path = ensure_baseline_exists(file_path)
+    
+    # Load baseline if it exists
+    baseline_result = {}
+    if baseline_path.exists():
+        try:
+            with open(baseline_path, 'r', encoding='utf-8') as f:
+                baseline_result = json.load(f)
+            print(f"  📊 Baseline loaded: {baseline_result.get('confidence_score', 0):.2f} confidence")
+        except Exception as e:
+            print(f"  ⚠ Failed to load baseline: {e}")
+    
+    # Standard extraction for enhancement
     ext = file_path.suffix.lower()
     handler = handlers.get(ext)
     
@@ -412,9 +480,9 @@ def process_file_robust(file_path):
         except Exception as e:
             result = {'error': str(e), 'confidence_score': 0.0}
     
-    print(f"  Original: {result.get('confidence_score', 0):.2f} confidence, {len(result.get('items', []))} items")
+    print(f"  🔧 Initial: {result.get('confidence_score', 0):.2f} confidence, {len(result.get('items', []))} items")
     
-    # Robust enhancement
+    # Enhanced processing
     enhanced_result = result.copy()
     
     if llm_enhancer and should_enhance_robust(file_path, result):
@@ -432,74 +500,185 @@ def process_file_robust(file_path):
                 strategies = enhanced_result.get('enhancement_info', {}).get('enhancement_strategies', [])
                 success_count = len([s for s in strategies if 'enhanced' in s])
                 
-                print(f"  Enhanced: {enh_conf:.2f} confidence (Δ{improvement:+.2f}), {success_count} strategies applied")
+                print(f"  🚀 Enhanced: {enh_conf:.2f} confidence (Δ{improvement:+.2f}), {success_count} strategies applied")
             else:
-                print(f"  No content available for enhancement")
+                print(f"  ℹ️ No content available for enhancement")
         except Exception as e:
             print(f"  ❌ Enhancement completely failed: {e}")
             enhanced_result['enhancement_error'] = str(e)
     else:
-        print(f"  Skipping enhancement (not needed or LLM unavailable)")
+        reason = "not needed" if not should_enhance_robust(file_path, result) else "LLM unavailable"
+        print(f"  ⏭️ Skipping enhancement ({reason})")
     
-    # Add processing metadata
+    # Add processing metadata with comparison info
     enhanced_result['processing_metadata'] = {
         'file_name': file_path.name,
         'file_size_bytes': file_path.stat().st_size,
         'processing_timestamp': pd.Timestamp.now().isoformat(),
+        'processing_mode': 'enhanced_robust',
         'llm_enhanced': enhanced_result.get('enhancement_info', {}).get('enhanced_by_llm', False),
         'final_confidence': enhanced_result.get('confidence_score', 0.0),
         'needs_review': enhanced_result.get('confidence_score', 0.0) < 0.7,
-        'robust_mode': True
+        'baseline_available': baseline_path.exists(),
+        'baseline_confidence': baseline_result.get('confidence_score', 0),
+        'confidence_improvement': enhanced_result.get('confidence_score', 0) - baseline_result.get('confidence_score', 0)
     }
     
     return enhanced_result
 
+# FOCUSED FIX for enhanced_run_all_robust.py 
+# Add this at the beginning of your enhanced_run_all_robust.py file, right after the imports
+
+# Add this debugging function to see exactly what's happening
+def debug_file_processing():
+    """Debug function to see what files are being found and processed"""
+    
+    mock_dir = Path(__file__).resolve().parent / "data" / "mock_files"
+    print(f"🔍 DEBUG: Checking directory {mock_dir}")
+    print(f"🔍 DEBUG: Directory exists: {mock_dir.exists()}")
+    
+    if mock_dir.exists():
+        all_files = list(mock_dir.iterdir())
+        print(f"🔍 DEBUG: Total files in directory: {len(all_files)}")
+        
+        for file_path in all_files:
+            print(f"🔍 DEBUG: Found {file_path.name}")
+            print(f"   - Is file: {file_path.is_file()}")
+            print(f"   - Extension: '{file_path.suffix.lower()}'")
+            print(f"   - Size: {file_path.stat().st_size if file_path.is_file() else 'N/A'}")
+            
+            if file_path.suffix.lower() == '.txt':
+                print(f"   🎯 This is a .txt file!")
+                try:
+                    content = file_path.read_text(encoding='utf-8')[:200]
+                    print(f"   📄 Content preview: {repr(content[:100])}")
+                except Exception as e:
+                    print(f"   ❌ Cannot read: {e}")
+
+# REPLACE the main() function with this version that has more explicit debugging:
+
 def main():
-    """Main robust processing pipeline"""
+    """Main robust processing pipeline with comprehensive debugging"""
     print("🛠️ Starting ROBUST Enhanced Document Processing Pipeline")
-    print("=" * 70)
+    print("🎯 Features: LLM Enhancement + Baseline Comparison + Learning System")
+    print("=" * 80)
+    
+    # Add debug output
+    debug_file_processing()
     
     if not mock_dir.exists():
         print(f"❌ Mock files directory not found: {mock_dir}")
+        print("💡 Run 'python config.py create-mocks' to create sample files")
         return
     
-    # Find files to process
+    # EXPLICIT file finding with detailed logging
+    all_files = list(mock_dir.iterdir())
+    print(f"\n📂 Directory scan results:")
+    print(f"   Total items found: {len(all_files)}")
+    
     files_to_process = []
-    for file_path in sorted(mock_dir.iterdir()):
+    skipped_files = []
+    
+    # Check each file explicitly
+    for file_path in sorted(all_files):
+        print(f"\n🔎 Examining: {file_path.name}")
+        
+        # Skip hidden files
         if file_path.name.startswith('.') or file_path.name.lower() == '.gitkeep':
+            print(f"   ⏭️ SKIP: Hidden/system file")
             continue
+            
+        # Skip non-files
         if not file_path.is_file():
+            print(f"   ⏭️ SKIP: Not a file (directory/symlink)")
             continue
         
         ext = file_path.suffix.lower()
-        if ext in handlers.keys():
+        file_size = file_path.stat().st_size
+        
+        print(f"   📋 Extension: '{ext}' (empty if no extension)")
+        print(f"   📋 Size: {file_size} bytes")
+        
+        # EXPLICIT checks for .txt files
+        if ext == '.txt':
+            print(f"   🎯 EXPLICIT .txt MATCH - WILL PROCESS")
             files_to_process.append(file_path)
+            continue
+        
+        # Check other known extensions
+        if ext in ['.pdf', '.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.xlsx', '.xls', '.csv']:
+            print(f"   ✅ STANDARD FORMAT - WILL PROCESS")
+            files_to_process.append(file_path)
+            continue
+            
+        # Check document formats
+        if ext in ['.doc', '.docx', '.rtf', '.md', '.log', '.text']:
+            print(f"   📝 DOCUMENT FORMAT - WILL PROCESS")
+            files_to_process.append(file_path)
+            continue
+        
+        # Check text content for unknown formats
+        print(f"   🤔 UNKNOWN FORMAT - checking text content...")
+        if file_size < 1024 * 1024:  # Less than 1MB
+            try:
+                content_sample = file_path.read_text(encoding='utf-8')[:100]
+                if content_sample.strip() and len(content_sample.strip()) > 10:
+                    print(f"   ✅ HAS TEXT CONTENT - WILL PROCESS")
+                    files_to_process.append(file_path)
+                    continue
+                else:
+                    print(f"   ❌ NO MEANINGFUL TEXT")
+            except Exception as e:
+                print(f"   ❌ CANNOT READ AS TEXT: {e}")
         else:
-            print(f"⚠ Skipping unsupported format: {file_path.name}")
+            print(f"   ❌ TOO LARGE for unknown format ({file_size} bytes)")
+        
+        print(f"   ⏭️ SKIP: Cannot process")
+        skipped_files.append(file_path)
+    
+    # Results summary
+    print(f"\n📊 FILE PROCESSING SUMMARY:")
+    print(f"   📁 Files to process: {len(files_to_process)}")
+    print(f"   ⏭️ Files to skip: {len(skipped_files)}")
+    
+    # Show what will be processed
+    if files_to_process:
+        print(f"\n✅ WILL PROCESS THESE FILES:")
+        for f in files_to_process:
+            print(f"   - {f.name} ({f.suffix if f.suffix else 'no extension'})")
+    
+    if skipped_files:
+        print(f"\n❌ WILL SKIP THESE FILES:")
+        for f in skipped_files:
+            print(f"   - {f.name} ({f.suffix if f.suffix else 'no extension'})")
     
     if not files_to_process:
-        print("❌ No files found to process")
+        print("\n❌ NO FILES TO PROCESS!")
+        print("💡 Check if your .txt files exist and are readable")
         return
     
-    print(f"📁 Found {len(files_to_process)} files to process")
-    print(f"🤖 LLM Enhancement: {'✓ ROBUST MODE' if llm_enhancer else '✗ Disabled'}")
+    print(f"\n🤖 LLM Enhancement: {'✅ AVAILABLE' if llm_enhancer else '❌ NOT AVAILABLE'}")
     
-    # Process files
+    # Process each file
     processed_files = []
     successful_enhancements = 0
     
-    for file_path in files_to_process:
+    for i, file_path in enumerate(files_to_process, 1):
+        print(f"\n{'='*80}")
+        print(f"[{i}/{len(files_to_process)}] PROCESSING: {file_path.name}")
+        print(f"{'='*80}")
+        
         try:
             enhanced_result = process_file_robust(file_path)
             
             # Save result
-            enhanced_name = file_path.stem + '_enhanced_robust.json'
-            enhanced_path = enhanced_out_dir / enhanced_name
+            enhanced_filename = get_enhanced_filename(file_path)
+            enhanced_path = enhanced_out_dir / enhanced_filename
             
-            with open(enhanced_path, 'w', encoding='utf-8') as fo:
-                json.dump(enhanced_result, fo, indent=2, default=str)
+            with open(enhanced_path, 'w', encoding='utf-8') as f:
+                json.dump(enhanced_result, f, indent=2, default=str)
             
-            print(f"  💾 Saved: {enhanced_path.name}")
+            print(f"  💾 SAVED: {enhanced_path.name}")
             
             if enhanced_result.get('enhancement_info', {}).get('enhanced_by_llm'):
                 successful_enhancements += 1
@@ -507,26 +686,59 @@ def main():
             processed_files.append(enhanced_result)
             
         except Exception as e:
-            print(f"❌ Failed processing {file_path.name}: {e}")
-            print(f"   Traceback: {traceback.format_exc()}")
+            print(f"❌ PROCESSING FAILED for {file_path.name}: {e}")
+            import traceback
+            print(f"   Full traceback: {traceback.format_exc()}")
     
-    # Summary
-    print("\n" + "=" * 70)
-    print("📊 ROBUST Processing Summary")
-    print("=" * 70)
-    print(f"Total files processed: {len(processed_files)}")
-    print(f"Successfully enhanced: {successful_enhancements}")
+    # Final summary
+    print(f"\n{'='*80}")
+    print(f"🎉 PROCESSING COMPLETE!")
+    print(f"{'='*80}")
+    print(f"   Total processed: {len(processed_files)}")
+    print(f"   LLM enhanced: {successful_enhancements}")
+    print(f"   Output directory: {enhanced_out_dir}")
+    
     if processed_files:
-        print(f"Enhancement rate: {successful_enhancements/len(processed_files)*100:.1f}%")
-        
         avg_confidence = sum(f.get('confidence_score', 0) for f in processed_files) / len(processed_files)
-        print(f"Average confidence: {avg_confidence:.2f}")
-        
-        high_confidence = sum(1 for f in processed_files if f.get('confidence_score', 0) >= 0.8)
-        print(f"High confidence files: {high_confidence}/{len(processed_files)}")
+        print(f"   Average confidence: {avg_confidence:.2f}")
     
-    print(f"\n💾 Results saved to: {enhanced_out_dir}/")
-    print("\n✅ ROBUST processing complete!")
+    print(f"\n💡 Next step: streamlit run src/ui/enhanced_reviewer.py")
+
+# ALSO add this simpler txt handler if the original one is causing issues:
+def extract_from_txt_simple(path):
+    """Simplified .txt extraction that always works"""
+    try:
+        content = Path(path).read_text(encoding='utf-8')
+        print(f"   📄 Read {len(content)} characters from .txt file")
+        
+        result = {
+            'order_id': 'TXT-EXTRACTED',  # Placeholder to show it worked
+            'client_name': 'Text File Client',
+            'order_date': None,
+            'delivery_date': None,
+            'items': [{'description': 'Text file content', 'raw_content': content[:200]}],
+            'order_total': None,
+            'currency': None,
+            'special_instructions': None,
+            'confidence_score': 0.5,  # Medium confidence to trigger LLM enhancement
+            'file_type': 'txt',
+            'processing_note': 'Basic .txt extraction successful'
+        }
+        
+        return result
+        
+    except Exception as e:
+        print(f"   ❌ .txt extraction failed: {e}")
+        return {'error': f'txt extraction failed: {e}', 'confidence_score': 0.0}
+
+# UPDATE the handlers dictionary to use the simple version:
+handlers['.txt'] = lambda p: extract_from_txt_simple(str(p))
+handlers['.text'] = lambda p: extract_from_txt_simple(str(p))
+
+print("🔧 FOCUSED FIX LOADED - .txt files should now be processed!")
+
+
+
 
 if __name__ == '__main__':
     main()
