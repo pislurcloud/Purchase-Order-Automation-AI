@@ -92,9 +92,9 @@ print("🔧 FOCUSED FIX LOADED - .txt files should now be processed!")
 # Robust LLM Enhancement Class
 class SimpleLLMEnhancer:
     def __init__(self, api_key):
-        from groq import Groq
-        self.client = Groq(api_key=api_key)
-        self.model = "Llama-3.3-70B-Versatile"
+        import openai
+        self.client = openai.OpenAI(api_key=api_key)
+        self.model = "gpt-4"
 
             
     def safe_llm_call(self, prompt, max_retries=2):
@@ -251,17 +251,17 @@ class SimpleLLMEnhancer:
 
 # Initialize LLM enhancer
 llm_enhancer = None
-#openai_api_key = os.getenv('OPENAI_API_KEY')
-groq_api_key = os.getenv('GROQ_API_KEY')
+openai_api_key = os.getenv('OPENAI_API_KEY')
+#groq_api_key = os.getenv('GROQ_API_KEY')
 
-if groq_api_key:
+if openai_api_key:
     try:
-        llm_enhancer = SimpleLLMEnhancer(groq_api_key)
+        llm_enhancer = SimpleLLMEnhancer(openai_api_key)
         print("✓ Robust LLM enhancer initialized")
     except Exception as e:
         print(f"⚠ LLM enhancer failed to initialize: {e}")
 else:
-    print("⚠ GROQ_API_KEY not set - running without LLM enhancement")
+    print("⚠ OPENAI_API_KEY not set - running without LLM enhancement")
 
 def get_raw_content(file_path):
     """Extract raw content for LLM processing"""
